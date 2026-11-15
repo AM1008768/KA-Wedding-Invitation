@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Katherine &amp; Arorangi · Save the Date</title>
+  <meta name="description" content="Katherine &amp; Arorangi are getting married · 16 January 2027">
+
+  <!-- Link preview when the invite is texted / shared.
+       Once hosted, change these to full URLs, e.g. https://your-site.netlify.app/assets/card.webp -->
+  <meta property="og:title" content="Katherine &amp; Arorangi · Save the Date">
+  <meta property="og:description" content="We're getting married! 16 January 2027. Tap to open your invitation.">
+  <meta property="og:image" content="assets/card.webp">
+  <meta name="theme-color" content="#e6ebe3">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Great+Vibes&display=swap" rel="stylesheet">
+
+  <style>
+    /* ---------- Easy-to-tweak settings ---------- */
+    :root {
+      --ink: #234a3e;            /* dark green used on the card */
+      --ink-soft: #4d6b60;
+      --bg: #e6ebe3;             /* fallback page colour */
+      --paper: #efece8;          /* matches the card paper */
+      --env-width: min(86vw, 520px, 56svh);   /* envelope size */
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg) url("assets/background.webp") center top / cover no-repeat fixed;
+      font-family: "Courier Prime", "Courier New", monospace;
+      color: var(--ink);
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .scene {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      padding-bottom: max(14svh, 60px);
+      perspective: 1600px;
+    }
+
+    /* Welcome title above the envelope */
+    .welcome {
+      margin: 0 0 clamp(36px, 9svh, 80px);
+      padding: 0 16px;
+      font-family: "Great Vibes", cursive;
+      font-weight: 400;
+      font-size: clamp(40px, 11vw, 68px);
+      line-height: 1.1;
+      color: #1f2a24;
+      text-align: center;
+      text-shadow: 0 0 14px rgba(255, 255, 255, .9), 0 0 4px rgba(255, 255, 255, .8);
+    }
+
+    /* ---------- Envelope ---------- */
+    .envelope {
+      position: relative;
+      width: var(--env-width);
+      aspect-ratio: 1185 / 648;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      animation: float 4s ease-in-out infinite;
+    }
+    .envelope.opening { animation: none; cursor: default; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    .envelope img { display: block; width: 100%; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    .layer { position: absolute; left: 0; top: 0; }
+
+    .back   { z-index: 1; filter: drop-shadow(0 8px 10px rgba(40, 50, 30, .18)); }
+    .pocket { z-index: 3; }
+
+    /* Flap hinges along the top edge of the envelope */
+    .flap {
+      position: absolute; left: 0; bottom: 100%;
+      width: 100%;
+      transform-origin: 50% 100%;
+      transform: rotateX(180deg) scaleY(.74);   /* closed: tip lands mid-envelope, under the seal */
+      z-index: 4;
+    }
+
+    /* Card sits inside: clipped at the envelope bottom only, free to rise out the top */
+    .card-clip {
+      position: absolute; z-index: 2;
+      left: 6%; right: 6%;
+      top: -300%; bottom: 4px;              /* a touch above the bottom edge so the card never peeks out */
+      overflow: hidden;
+    }
+    .card {
+      position: absolute; left: 0; width: 100%;
+      top: calc(75% + 6px);             /* just below the envelope opening */
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(40, 50, 30, .15);
+    }
+
+    .envelope .seal {
+      position: absolute; z-index: 5;
+      width: 19%; left: 40.5%; top: 42%;
+      filter: drop-shadow(0 3px 4px rgba(80, 50, 10, .35));
+    }
+
+    .tap-hint {
+      margin-top: 28px;
+      font-size: clamp(15px, 4vw, 18px);
+      letter-spacing: .25em; text-transform: uppercase;
+      background: none; border: 0; color: var(--ink); font-family: inherit;
+      cursor: pointer; padding: 10px 16px;
+      animation: pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+    /* ---------- Card lifting out (animation only) ---------- */
+    .reveal {
+      position: fixed; z-index: 10;
+      display: none;
+      border-radius: 6px;
+      box-shadow: 0 20px 60px rgba(30, 50, 35, .3);
+      will-change: transform;
+    }
+    .reveal.show { display: block; }
+
+    /* ---------- Details page (the paper that fills the screen) ---------- */
+    .details {
+      position: fixed; inset: 0; z-index: 9;
+      display: none;
+      overflow-y: auto; overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    .details.show { display: block; }
+
+    /* The paper itself: 75% of the screen wide, greenery showing either side */
+    .sheet {
+      width: 75%; min-height: 100%; margin: 0 auto;
+      background: var(--paper) url("assets/paper.webp") 0 0 / 560px auto repeat;
+      box-shadow: 0 0 40px rgba(30, 50, 35, .22);
+    }
+
+    .hero {
+      min-height: 100svh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .hero img {
+      width: var(--card-w, 92vw); display: block;
+      /* feather the card edges so it melts into the page paper */
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+                          linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+      -webkit-mask-composite: source-in;
+      mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+                  linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+      mask-composite: intersect;
+    }
+
+    .scroll-hint {
+      position: absolute; left: 0; right: 0; bottom: max(14px, env(safe-area-inset-bottom));
+      text-align: center; font-size: 13px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--ink-soft);
+      opacity: 0; transition: opacity .8s .3s;
+    }
+    .details.ready .scroll-hint { opacity: 1; }
+    .scroll-hint::after {
+      content: ""; display: block; width: 10px; height: 10px; margin: 6px auto 0;
+      border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+      transform: rotate(45deg); animation: nudge 1.8s ease-in-out infinite;
+    }
+    @keyframes nudge { 0%,100% { translate: 0 0; } 50% { translate: 0 5px; } }
+
+    .content {
+      max-width: 560px; margin: 0 auto;
+      padding: 24px 14px max(48px, env(safe-area-inset-bottom));
+      text-align: center;
+      font-size: clamp(14px, 3.9vw, 17px); line-height: 1.65;
+    }
+    .countdown {
+      margin: 8px 0 0; font-size: 14px; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-soft);
+    }
+
+    section { padding: 36px 0 8px; }
+    section h2 {
+      margin: 0 0 12px;
+      font-family: "Great Vibes", cursive; font-weight: 400;
+      font-size: clamp(40px, 11vw, 52px); line-height: 1.1;
+      color: #1f2a24;
+    }
+    section p { margin: 0 0 12px; }
+    .big { font-size: 20px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .small { font-size: 15px; color: var(--ink-soft); }
+
+    .ornament { display: block; width: 150px; margin: 28px auto 0; opacity: .95; }
+
+    .motif { display: block; width: 130px; max-width: 55%; margin: 32px auto 0; filter: drop-shadow(0 2px 3px rgba(60,50,30,.15)); }
+    .motif.wide  { width: 160px; max-width: 65%; }
+    .motif.small { width: 80px; }
+    .tilt-l { rotate: -6deg; }
+    .tilt-r { rotate: 5deg; }
+    .phone { color: var(--ink); font-weight: 700; font-size: 1.15em; letter-spacing: .05em; }
+    .phone.email { font-size: 1em; letter-spacing: 0; overflow-wrap: anywhere; }
+
+    .timeline { list-style: none; padding: 0; margin: 0 auto; max-width: 340px; text-align: left; }
+    .timeline li {
+      display: grid; grid-template-columns: minmax(70px, 92px) 1fr; gap: 12px;
+      padding: 10px 0; border-bottom: 1px dashed rgba(35, 74, 62, .25);
+    }
+    .timeline li:last-child { border-bottom: 0; }
+    .timeline .time { font-weight: 700; }
+
+    .btn {
+      display: inline-block; margin: 8px 4px 4px;
+      padding: 12px 24px; border-radius: 999px;
+      border: 1.5px solid var(--ink); color: var(--ink);
+      font: 700 14px/1 "Courier Prime", monospace; letter-spacing: .18em; text-transform: uppercase;
+      text-decoration: none; background: transparent; cursor: pointer;
+    }
+    .btn.solid { background: var(--ink); color: var(--paper); }
+    .btn:active { transform: translateY(1px); }
+    .links { font-size: 15px; }
+    .links a { color: var(--ink); }
+
+    .signoff { padding-top: 48px; }
+    .signoff .sprig { width: 130px; max-width: 50%; display: block; margin: 0 auto 12px; filter: drop-shadow(0 2px 3px rgba(60,50,30,.15)); }
+    .signoff .names { font-family: "Great Vibes", cursive; font-size: 40px; color: #1f2a24; margin: 0; }
+    .again { margin-top: 28px; background: none; border: 0; font: 14px "Courier Prime", monospace;
+             letter-spacing: .15em; text-transform: uppercase; color: var(--ink-soft); cursor: pointer; padding: 10px; }
+
+    /* Placeholder text you still need to fill in. Delete this rule (or the class) once done. */
+    .todo { background: rgba(255, 214, 102, .45); border-radius: 3px; padding: 0 3px; }
+
+    /* Gentle fade-up as sections scroll into view */
+    .fade { opacity: 0; translate: 0 18px; transition: opacity .7s ease, translate .7s ease; }
+    .fade.in { opacity: 1; translate: 0 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fade { opacity: 1; translate: none; transition: none; }
+    }
+
+    .loading .envelope, .loading .tap-hint, .loading .welcome { visibility: hidden; }
+  </style>
+</head>
+<body class="loading">
+
+  <main class="scene">
+    <h1 class="welcome" id="welcome">You have been invited</h1>
+    <div class="envelope" id="envelope" role="button" aria-label="Open the invitation" tabindex="0">
+      <img class="layer back"   src="assets/envelope-back.png"   alt="">
+      <div class="card-clip"><img class="card" id="card" src="assets/card.webp" alt=""></div>
+      <img class="layer pocket" src="assets/envelope-pocket.png" alt="">
+      <img class="flap" id="flap" src="assets/flap.png" alt="">
+      <img class="seal" id="seal" src="assets/seal.png" alt="">
+    </div>
+    <button class="tap-hint" id="hint">Tap to open</button>
+  </main>
+
+  <img class="reveal" id="reveal" src="assets/card.webp" alt="">
+
+  <!-- ===================== DETAILS (scrolls after the card opens) =====================
+       Highlighted yellow text = placeholders to replace with your real details. -->
+  <div class="details" id="details" aria-hidden="true" tabindex="-1">
+   <div class="sheet">
+    <header class="hero">
+      <img src="assets/card.webp" alt="Save the Date. Katherine and Arorangi are getting married, January 16th, 2027.">
+      <div class="scroll-hint">Scroll for details</div>
+    </header>
+
+    <div class="content">
+      <p class="countdown fade" id="countdown"></p>
+
+      <img class="motif fade" src="assets/couple.webp" alt="">
+
+      <section class="fade">
+        <h2>The Day</h2>
+        <p class="big">Saturday 16 January 2027</p>
+        <p>Guests arrive from 4:00pm<br>Ceremony at 4:30pm<br>Reception to follow</p>
+        <p class="links">Add to calendar:
+          <a id="gcal" href="#" target="_blank" rel="noopener">Google</a> ·
+          <a id="ical" href="#" download="katherine-arorangi-wedding.ics">Apple / Outlook</a>
+        </p>
+      </section>
+
+      <img class="motif wide fade" src="assets/rings.webp" alt="">
+
+      <section class="fade">
+        <h2>The Venue</h2>
+        <p class="big">The Old Mill</p>
+        <p>32 Main Street<br>Hospital Hill<br>Napier 4110</p>
+        <a class="btn" id="maps" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
+        <p class="small" style="margin-top:14px"><span class="todo">Parking is available on site.</span></p>
+      </section>
+
+      <img class="motif tilt-l fade" src="assets/poppy.webp" alt="">
+
+      <section class="fade">
+        <h2>Order of the Day</h2>
+        <ul class="timeline">
+          <li><span class="time">4:00pm</span><span>Guests arrive</span></li>
+          <li><span class="time">4:30pm</span><span>Ceremony</span></li>
+          <li><span class="time">TBD</span><span>Drinks &amp; canapés</span></li>
+          <li><span class="time">TBD</span><span>Dinner &amp; speeches</span></li>
+          <li><span class="time">TBD</span><span>Cake &amp; dancing</span></li>
+          <li><span class="time">TBD</span><span>Carriages</span></li>
+        </ul>
+      </section>
+
+      <img class="motif fade" src="assets/champagne.webp" alt="">
+
+      <section class="fade">
+        <h2>Dress Code</h2>
+        <p><span class="todo">Garden formal. Think summer suits and flowing dresses, and shoes that are happy on grass.</span></p>
+      </section>
+
+      <img class="motif tilt-r fade" src="assets/ginkgo.webp" alt="">
+
+      <section class="fade">
+        <h2>Adults Only</h2>
+        <p>We love your little ones, but apart from a couple of very special little people in our immediate family, our celebration will be adults only. We hope you enjoy a night off with us!</p>
+      </section>
+
+      <img class="ornament fade" src="assets/ornament.png" alt="">
+
+      <section class="fade">
+        <h2>RSVP</h2>
+        <p>Please let us know if you can join us by <strong class="todo">1 December 2026</strong>.</p>
+        <a class="btn solid" id="rsvp-form" href="#" target="_blank" rel="noopener" hidden>RSVP here</a>
+        <a class="btn solid" id="rsvp-email" href="#">RSVP by email</a>
+        <a class="btn solid" id="rsvp-text" href="#">RSVP by text</a>
+        <p class="small" id="rsvp-note" style="margin-top:14px">Please include everyone's names and any dietary requirements.</p>
+      </section>
+
+      <img class="motif small fade" src="assets/heart.webp" alt="">
+
+      <section class="fade">
+        <h2>Gifts</h2>
+        <p><span class="todo">Having you there is the greatest gift. If you'd like to give something, there will be a wishing well on the day.</span></p>
+      </section>
+
+      <section class="fade">
+        <h2>Questions?</h2>
+        <p>Give us a call or text on<br><a class="phone" href="tel:+64274229299">027 422 9299</a></p>
+        <p>or email us at<br><a class="phone email" href="mailto:katandaro159@gmail.com">katandaro159@gmail.com</a></p>
+      </section>
+
+      <footer class="signoff fade">
+        <img class="sprig" src="assets/bouquet.webp" alt="">
+        <p class="names">With love,<br>Katherine &amp; Arorangi</p>
+        <button class="again" id="again">↺ Open the envelope again</button>
+      </footer>
+    </div>
+   </div>
+  </div>
+
+  <script>
+    /* ================= Your details: edit these ================= */
+    const EVENT = {
+      title: 'Katherine & Arorangi’s Wedding',
+      venue: 'The Old Mill, 32 Main Street, Hospital Hill, Napier 4110',   // used for Google Maps + calendar
+      start: '2027-01-16T16:00',                               // local NZ time (guests arrive)
+      end:   '2027-01-16T23:30',                               // guess: update once you know the finish time
+      timezone: 'Pacific/Auckland',
+      rsvpForm: '',                                            // paste your Google Form link here, e.g. 'https://forms.gle/abc123'
+      email: 'katandaro159@gmail.com',                         // RSVPs by email go here
+      phone: '+64274229299',                                   // RSVPs by text go here
+    };
+
+    // Pre-filled message guests can just fill in and send
+    const RSVP_MESSAGE =
+      'Hi Katherine & Arorangi!\n\n' +
+      'Name(s): \n' +
+      'Attending: Yes / No\n' +
+      'Dietary requirements: ';
+
+    // Animation timings in milliseconds
+    const T = { seal: 450, flap: 800, slide: 1100, reveal: 1000, expand: 900 };
+
+    /* ================= Links ================= */
+    const $ = id => document.getElementById(id);
+    const compact = s => s.replace(/[-:]/g, '') + '00';
+    $('maps').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(EVENT.venue);
+    $('rsvp-email').href = 'mailto:' + EVENT.email
+      + '?subject=' + encodeURIComponent('Wedding RSVP')
+      + '&body=' + encodeURIComponent(RSVP_MESSAGE);
+    // "?&body=" works on both iPhone and Android
+    $('rsvp-text').href = 'sms:' + EVENT.phone + '?&body=' + encodeURIComponent(RSVP_MESSAGE);
+
+    // Once a Google Form link is set, show one "RSVP here" button instead of email/text
+    if (EVENT.rsvpForm) {
+      $('rsvp-form').href = EVENT.rsvpForm;
+      $('rsvp-form').hidden = false;
+      $('rsvp-email').hidden = $('rsvp-text').hidden = true;
+      $('rsvp-note').textContent = 'It only takes a minute. Please fill in one form per invitation.';
+    }
+    $('gcal').href = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text=' + encodeURIComponent(EVENT.title)
+      + '&dates=' + compact(EVENT.start) + '/' + compact(EVENT.end)
+      + '&ctz=' + encodeURIComponent(EVENT.timezone)
+      + '&location=' + encodeURIComponent(EVENT.venue);
+    $('ical').href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent([
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//wedding//invite//EN', 'BEGIN:VEVENT',
+      'UID:katherine-arorangi-2027@invite',
+      'DTSTART;TZID=' + EVENT.timezone + ':' + compact(EVENT.start),
+      'DTEND;TZID=' + EVENT.timezone + ':' + compact(EVENT.end),
+      'SUMMARY:' + EVENT.title, 'LOCATION:' + EVENT.venue.replace(/,/g, '\\,'),
+      'END:VEVENT', 'END:VCALENDAR'].join('\r\n'));
+
+    const days = Math.ceil((new Date(EVENT.start) - new Date()) / 864e5);
+    $('countdown').textContent = days > 1 ? `— ${days} days to go —` : days === 1 ? '— Tomorrow! —' : '';
+
+    /* ================= Envelope animation ================= */
+    const envelope = $('envelope'), flap = $('flap'), seal = $('seal'), card = $('card'),
+          hint = $('hint'), welcome = $('welcome'), reveal = $('reveal'), details = $('details');
+    const ease = 'cubic-bezier(.45,.05,.25,1)';
+    let busy = false, opened = false;
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      for (const k in T) T[k] = Math.round(T[k] * 0.4);
+    }
+
+    // Wait for all images so nothing pops in half-loaded
+    Promise.all([...document.images].map(img =>
+      img.complete ? 0 : new Promise(r => { img.onload = img.onerror = r; })
+    )).then(() => document.body.classList.remove('loading'));
+
+    const run = (el, frames, opts) => el.animate(frames, { fill: 'forwards', easing: ease, ...opts }).finished;
+
+    async function open() {
+      if (busy || opened) return;
+      busy = true;
+      envelope.classList.add('opening');
+      run(hint, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 });
+      run(welcome, [{ opacity: 1 }, { opacity: 0, transform: 'translateY(-12px)' }], { duration: 600 });
+
+      // 1. Seal pops off
+      await run(seal, [
+        { transform: 'scale(1)', opacity: 1 },
+        { transform: 'scale(1.25) translateY(-10%)', opacity: 0 }
+      ], { duration: T.seal });
+
+      // 2. Flap opens; it drops behind the card once it passes vertical
+      setTimeout(() => flap.style.zIndex = 0, T.flap / 2);
+      await run(flap, [{ transform: 'rotateX(180deg) scaleY(.74)' }, { transform: 'rotateX(0deg) scaleY(1)' }], { duration: T.flap });
+
+      // 3. Card slides up out of the envelope
+      const rise = card.offsetHeight * 0.62;
+      await run(card, [{ transform: 'translateY(0)' }, { transform: `translateY(${-rise}px)` }], { duration: T.slide });
+
+      // 4. Card lifts out and grows to fill most of the screen
+      const from = card.getBoundingClientRect();
+      const vw = innerWidth, vh = innerHeight;
+      const ratio = from.height / from.width;
+      const w = Math.min(vw * 0.75 - 20, (vh * 0.86) / ratio, 640);   // fits inside the 75%-wide paper
+      const h = w * ratio;
+      const left = (vw - w) / 2, top = (vh - h) / 2;
+      Object.assign(reveal.style, { width: w + 'px', height: h + 'px', left: left + 'px', top: top + 'px' });
+      reveal.classList.add('show');
+      card.style.visibility = 'hidden';
+
+      const dx = from.left - left, dy = from.top - top, s = from.width / w;
+      run(envelope, [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(40%)', opacity: 0 }], { duration: T.reveal });
+      await run(reveal, [
+        { transform: `translate(${dx}px, ${dy}px) scale(${s})`, transformOrigin: '0 0' },
+        { transform: 'translate(0,0) scale(1)', transformOrigin: '0 0' }
+      ], { duration: T.reveal });
+
+      // 5. The paper spreads out from the card's edges to fill the page
+      details.style.setProperty('--card-w', w + 'px');
+      details.scrollTop = 0;
+      details.classList.add('show');
+      details.setAttribute('aria-hidden', 'false');
+      const r = vw - left - w, b = vh - top - h;
+      run(reveal, [{ boxShadow: '0 20px 60px rgba(30,50,35,.3)' }, { boxShadow: '0 0 0 rgba(0,0,0,0)' }], { duration: T.expand / 2 });
+      await run(details, [
+        { clipPath: `inset(${top}px ${r}px ${b}px ${left}px round 6px)` },
+        { clipPath: 'inset(0px 0px 0px 0px round 0px)' }
+      ], { duration: T.expand });
+
+      reveal.classList.remove('show');
+      details.classList.add('ready');
+      details.focus({ preventScroll: true });
+      opened = true; busy = false;
+    }
+
+    function reset() {
+      [envelope, flap, seal, card, hint, welcome, reveal, details].forEach(el => el.getAnimations().forEach(a => a.cancel()));
+      flap.style.zIndex = '';
+      card.style.visibility = '';
+      reveal.classList.remove('show');
+      details.classList.remove('show', 'ready');
+      details.setAttribute('aria-hidden', 'true');
+      document.querySelectorAll('.fade.in').forEach(el => el.classList.remove('in'));
+      envelope.classList.remove('opening');
+      opened = false;
+    }
+
+    // Fade sections in as they scroll into view
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('in');
+    }), { root: details, threshold: 0.15 });
+    document.querySelectorAll('.fade').forEach(el => io.observe(el));
+
+    envelope.addEventListener('click', open);
+    hint.addEventListener('click', open);
+    envelope.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    $('again').addEventListener('click', reset);
+  </script>
+</body>
+</html>
