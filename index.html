@@ -435,8 +435,17 @@
       + '&ctz=' + encodeURIComponent(EVENT.timezone)
       + '&location=' + encodeURIComponent(EVENT.venue);
 
-    const days = Math.ceil((new Date(EVENT.start) - new Date()) / 864e5);
-    $('countdown').textContent = days > 1 ? `— ${days} days to go —` : days === 1 ? '— Tomorrow! —' : '';
+    // Countdown: works itself out every time the page opens, counting whole days by the NZ calendar,
+    // so everyone (including overseas guests) sees the same number and it ticks over at midnight NZ time.
+    function daysToGo(now = new Date()) {
+      const nzToday = new Intl.DateTimeFormat('en-CA', { timeZone: EVENT.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+      return Math.round((Date.parse(EVENT.start.slice(0, 10)) - Date.parse(nzToday)) / 864e5);
+    }
+    const days = daysToGo();
+    $('countdown').textContent =
+      days > 1   ? `— ${days} days to go —` :
+      days === 1 ? '— Tomorrow! —' :
+      days === 0 ? '— Today’s the day! —' : '';
 
     /* ================= Envelope animation ================= */
     const envelope = $('envelope'), flap = $('flap'), seal = $('seal'), card = $('card'),
