@@ -6,11 +6,17 @@
   <title>Katherine &amp; Arorangi · Save the Date</title>
   <meta name="description" content="Katherine &amp; Arorangi are getting married · 16 January 2027">
 
-  <!-- Link preview when the invite is texted / shared.
-       Once hosted, change these to full URLs, e.g. https://your-site.netlify.app/assets/card.webp -->
+  <!-- Link preview when the invite is texted / shared -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://am1008768.github.io/KA-Wedding-Invitation/">
   <meta property="og:title" content="Katherine &amp; Arorangi · Save the Date">
   <meta property="og:description" content="We're getting married! 16 January 2027. Tap to open your invitation.">
-  <meta property="og:image" content="assets/card.webp">
+  <meta property="og:image" content="https://am1008768.github.io/KA-Wedding-Invitation/assets/preview.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Save the Date card for Katherine and Arorangi, 16 January 2027">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/seal.png">
   <meta name="theme-color" content="#e6ebe3">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,6 +34,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html, body { margin: 0; height: 100%; }
     body {
       background: var(--bg) url("assets/background.webp") center top / cover no-repeat fixed;
@@ -41,7 +48,6 @@
       position: fixed; inset: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
       padding-bottom: max(14svh, 60px);
-      perspective: 1600px;
     }
 
     /* Welcome title above the envelope */
@@ -50,11 +56,22 @@
       padding: 0 16px;
       font-family: "Great Vibes", cursive;
       font-weight: 400;
-      font-size: clamp(40px, 11vw, 68px);
-      line-height: 1.1;
-      color: #1f2a24;
+      font-size: clamp(38px, 10.5vw, 64px);
+      line-height: 1.15;
+      color: #17231d;
       text-align: center;
       text-shadow: 0 0 14px rgba(255, 255, 255, .9), 0 0 4px rgba(255, 255, 255, .8);
+      position: relative; isolation: isolate;
+    }
+    /* Soft cream "wash" behind the title so it reads clearly over the greenery */
+    .welcome::before {
+      content: ""; position: absolute; z-index: -1;
+      inset: -28px -8px -22px;
+      background: radial-gradient(ellipse at center,
+                  rgba(250, 248, 242, .92) 0%, rgba(250, 248, 242, .78) 40%,
+                  rgba(250, 248, 242, .35) 62%, rgba(250, 248, 242, 0) 75%);
+      filter: blur(2px);
+      pointer-events: none;
     }
 
     /* ---------- Envelope ---------- */
@@ -63,7 +80,6 @@
       width: var(--env-width);
       aspect-ratio: 1185 / 648;
       cursor: pointer;
-      transform-style: preserve-3d;
       animation: float 4s ease-in-out infinite;
     }
     .envelope.opening { animation: none; cursor: default; }
@@ -83,7 +99,10 @@
       position: absolute; left: 0; bottom: 100%;
       width: 100%;
       transform-origin: 50% 100%;
-      transform: rotateX(180deg) scaleY(.74);   /* closed: tip lands mid-envelope, under the seal */
+      /* closed: tip lands mid-envelope, under the seal. The flap carries its own perspective,
+         so the rest of the envelope stays flat and layers never flicker through each other (iPhone Safari). */
+      transform: perspective(900px) rotateX(180deg) scaleY(.74);
+      will-change: transform;
       z-index: 4;
     }
 
@@ -191,6 +210,13 @@
       color: #1f2a24;
     }
     section p { margin: 0 0 12px; }
+    /* Te Reo Māori · Spanish line under each heading */
+    .alt { margin: -6px 0 14px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+    .signoff-alt { margin: 0 0 4px; }
+    .welcome-alt { display: block; margin-top: 14px; font-family: "Courier Prime", monospace; font-size: clamp(13px, 3.6vw, 16px);
+                   letter-spacing: .22em; text-transform: uppercase; color: #1f3a30; font-weight: 700; }
+    .welcome-line { display: block; white-space: nowrap; }
+    .ph { white-space: nowrap; }   /* keep each language's phrase together; lines break at the dot */
     .big { font-size: 20px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
     .small { font-size: 15px; color: var(--ink-soft); }
 
@@ -201,6 +227,7 @@
     .motif.small { width: 80px; }
     .tilt-l { rotate: -6deg; }
     .tilt-r { rotate: 5deg; }
+ 
     .phone { color: var(--ink); font-weight: 700; font-size: 1.15em; letter-spacing: .05em; }
     .phone.email { font-size: 1em; letter-spacing: 0; overflow-wrap: anywhere; }
 
@@ -211,6 +238,9 @@
     }
     .timeline li:last-child { border-bottom: 0; }
     .timeline .time { font-weight: 700; }
+    .timeline .tl-alt { display: block; margin-top: 2px; font-size: 13px; line-height: 1.45; color: var(--ink-soft); }
+    .timeline .tl-alt span { display: block; }
+    .timeline .tl-alt [lang="es"] { font-style: italic; }
 
     .btn {
       display: inline-block; margin: 8px 4px 4px;
@@ -247,7 +277,7 @@
 <body class="loading">
 
   <main class="scene">
-    <h1 class="welcome" id="welcome">You have been invited</h1>
+    <h1 class="welcome" id="welcome"><span class="welcome-line" lang="mi">Nau mai, haere mai</span><span class="welcome-line" lang="es">Te invitamos</span><span class="welcome-alt">You have been invited</span></h1>
     <div class="envelope" id="envelope" role="button" aria-label="Open the invitation" tabindex="0">
       <img class="layer back"   src="assets/envelope-back.png"   alt="">
       <div class="card-clip"><img class="card" id="card" src="assets/card.webp" alt=""></div>
@@ -265,7 +295,7 @@
   <div class="details" id="details" aria-hidden="true" tabindex="-1">
    <div class="sheet">
     <header class="hero">
-      <img src="assets/card.webp" alt="Save the Date. Katherine and Arorangi are getting married, January 16th, 2027.">
+      <img src="assets/card.webp" alt="Save the Date (Tiakina te rā, Reserva la fecha). Katherine and Arorangi are getting married (ka mārena māua, se casan), January 16th, 2027.">
       <div class="scroll-hint">Scroll for details</div>
     </header>
 
@@ -276,11 +306,12 @@
 
       <section class="fade">
         <h2>The Day</h2>
+        <p class="alt" lang="mi-es"><span class="ph">Te Rā</span> <span class="dot">·</span> <span class="ph">El Día</span></p>
         <p class="big">Saturday 16 January 2027</p>
         <p>Guests arrive from 4:00pm<br>Ceremony at 4:30pm<br>Reception to follow</p>
         <p class="links">Add to calendar:
           <a id="gcal" href="#" target="_blank" rel="noopener">Google</a> ·
-          <a id="ical" href="#" download="katherine-arorangi-wedding.ics">Apple / Outlook</a>
+          <a id="ical" href="assets/wedding.ics">Apple / Outlook</a>
         </p>
       </section>
 
@@ -288,37 +319,42 @@
 
       <section class="fade">
         <h2>The Venue</h2>
+        <p class="alt" lang="mi-es"><span class="ph">Te Wāhi</span> <span class="dot">·</span> <span class="ph">El Lugar</span></p>
         <p class="big">The Old Mill</p>
         <p>32 Main Street<br>Hospital Hill<br>Napier 4110</p>
         <a class="btn" id="maps" href="#" target="_blank" rel="noopener">Open in Google Maps</a>
-        <p class="small" style="margin-top:14px"><span class="todo">Parking is available on site.</span></p>
+        <p class="small" style="margin-top:14px">Limited on-street parking is available.</p>
       </section>
 
       <img class="motif tilt-l fade" src="assets/poppy.webp" alt="">
 
+      <!-- ORDER OF THE DAY: hidden until the schedule is final. To bring it back, delete this line and the matching "END ORDER OF THE DAY" line below.
       <section class="fade">
         <h2>Order of the Day</h2>
+        <p class="alt" lang="mi-es"><span class="ph">Te Raupapa o te Rā</span> <span class="dot">·</span> <span class="ph">El Programa</span></p>
         <ul class="timeline">
-          <li><span class="time">4:00pm</span><span>Guests arrive</span></li>
-          <li><span class="time">4:30pm</span><span>Ceremony</span></li>
-          <li><span class="time">TBD</span><span>Drinks &amp; canapés</span></li>
-          <li><span class="time">TBD</span><span>Dinner &amp; speeches</span></li>
-          <li><span class="time">TBD</span><span>Cake &amp; dancing</span></li>
-          <li><span class="time">TBD</span><span>Carriages</span></li>
+          <li><span class="time">4:00pm</span><span>Guests arrive<span class="tl-alt"><span lang="mi">Ka tae mai ngā manuhiri</span><span lang="es">Llegada de invitados</span></span></span></li>
+          <li><span class="time">4:30pm</span><span>Ceremony<span class="tl-alt"><span lang="mi">Te Mārena</span><span lang="es">Ceremonia</span></span></span></li>
+          <li><span class="time">TBD</span><span>Drinks &amp; canapés<span class="tl-alt"><span lang="mi">Ngā inu me ngā kai māmā</span><span lang="es">Bebidas y aperitivos</span></span></span></li>
+          <li><span class="time">TBD</span><span>Dinner &amp; speeches<span class="tl-alt"><span lang="mi">Te hākari me ngā whaikōrero</span><span lang="es">Cena y discursos</span></span></span></li>
+          <li><span class="time">TBD</span><span>Cake &amp; dancing<span class="tl-alt"><span lang="mi">Te keke me te kanikani</span><span lang="es">Pastel y baile</span></span></span></li>
+          <li><span class="time">TBD</span><span>Carriages<span class="tl-alt"><span lang="mi">Te poroporoaki</span><span lang="es">Despedida</span></span></span></li>
         </ul>
       </section>
 
       <img class="motif fade" src="assets/champagne.webp" alt="">
+      END ORDER OF THE DAY -->
 
       <section class="fade">
         <h2>Dress Code</h2>
-        <p><span class="todo">Garden formal. Think summer suits and flowing dresses, and shoes that are happy on grass.</span></p>
+        <p class="alt" lang="mi-es"><span class="ph">Ngā Kākahu</span> <span class="dot">·</span> <span class="ph">Código de Vestimenta</span></p>
+        <p>Summer formal. Think summer suits and flowing dresses.<br>It could be a hot Hawke's Bay day, so dress for the heat.</p>
       </section>
 
-      <img class="motif tilt-r fade" src="assets/ginkgo.webp" alt="">
 
       <section class="fade">
         <h2>Adults Only</h2>
+        <p class="alt" lang="mi-es"><span class="ph">Mō ngā Pakeke Anake</span> <span class="dot">·</span> <span class="ph">Solo Adultos</span></p>
         <p>We love your little ones, but apart from a couple of very special little people in our immediate family, our celebration will be adults only. We hope you enjoy a night off with us!</p>
       </section>
 
@@ -326,6 +362,7 @@
 
       <section class="fade">
         <h2>RSVP</h2>
+        <p class="alt" lang="mi-es"><span class="ph">Whakautu Mai</span> <span class="dot">·</span> <span class="ph">Confirma tu Asistencia</span></p>
         <p>Please let us know if you can join us by <strong class="todo">1 December 2026</strong>.</p>
         <a class="btn solid" id="rsvp-form" href="#" target="_blank" rel="noopener" hidden>RSVP here</a>
         <a class="btn solid" id="rsvp-email" href="#">RSVP by email</a>
@@ -333,21 +370,18 @@
         <p class="small" id="rsvp-note" style="margin-top:14px">Please include everyone's names and any dietary requirements.</p>
       </section>
 
-      <img class="motif small fade" src="assets/heart.webp" alt="">
 
-      <section class="fade">
-        <h2>Gifts</h2>
-        <p><span class="todo">Having you there is the greatest gift. If you'd like to give something, there will be a wishing well on the day.</span></p>
-      </section>
 
       <section class="fade">
         <h2>Questions?</h2>
+        <p class="alt" lang="mi-es"><span class="ph">He Pātai?</span> <span class="dot">·</span> <span class="ph">¿Preguntas?</span></p>
         <p>Give us a call or text on<br><a class="phone" href="tel:+64274229299">027 422 9299</a></p>
         <p>or email us at<br><a class="phone email" href="mailto:katandaro159@gmail.com">katandaro159@gmail.com</a></p>
       </section>
 
       <footer class="signoff fade">
         <img class="sprig" src="assets/bouquet.webp" alt="">
+        <p class="alt signoff-alt"><span class="ph">Me te aroha</span> <span class="dot">·</span> <span class="ph">Con amor</span></p>
         <p class="names">With love,<br>Katherine &amp; Arorangi</p>
         <button class="again" id="again">↺ Open the envelope again</button>
       </footer>
@@ -400,13 +434,6 @@
       + '&dates=' + compact(EVENT.start) + '/' + compact(EVENT.end)
       + '&ctz=' + encodeURIComponent(EVENT.timezone)
       + '&location=' + encodeURIComponent(EVENT.venue);
-    $('ical').href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent([
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//wedding//invite//EN', 'BEGIN:VEVENT',
-      'UID:katherine-arorangi-2027@invite',
-      'DTSTART;TZID=' + EVENT.timezone + ':' + compact(EVENT.start),
-      'DTEND;TZID=' + EVENT.timezone + ':' + compact(EVENT.end),
-      'SUMMARY:' + EVENT.title, 'LOCATION:' + EVENT.venue.replace(/,/g, '\\,'),
-      'END:VEVENT', 'END:VCALENDAR'].join('\r\n'));
 
     const days = Math.ceil((new Date(EVENT.start) - new Date()) / 864e5);
     $('countdown').textContent = days > 1 ? `— ${days} days to go —` : days === 1 ? '— Tomorrow! —' : '';
@@ -443,7 +470,7 @@
 
       // 2. Flap opens; it drops behind the card once it passes vertical
       setTimeout(() => flap.style.zIndex = 0, T.flap / 2);
-      await run(flap, [{ transform: 'rotateX(180deg) scaleY(.74)' }, { transform: 'rotateX(0deg) scaleY(1)' }], { duration: T.flap });
+      await run(flap, [{ transform: 'perspective(900px) rotateX(180deg) scaleY(.74)' }, { transform: 'perspective(900px) rotateX(0deg) scaleY(1)' }], { duration: T.flap });
 
       // 3. Card slides up out of the envelope
       const rise = card.offsetHeight * 0.62;

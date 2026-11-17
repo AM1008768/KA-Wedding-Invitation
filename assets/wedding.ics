@@ -1,0 +1,23 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Katherine and Arorangi//Wedding Invitation//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:katherine-arorangi-wedding-2027@ka-wedding-invitation
+DTSTAMP:20261118T000000Z
+DTSTART:20270116T030000Z
+DTEND:20270116T103000Z
+SUMMARY:Katherine & Arorangi's Wedding
+LOCATION:The Old Mill\, 32 Main Street\, Hospital Hill\, Napier 4110\, New 
+ Zealand
+DESCRIPTION:Guests arrive from 4:00pm\, ceremony at 4:30pm.\nInvitation: ht
+ tps://am1008768.github.io/KA-Wedding-Invitation/
+URL:https://am1008768.github.io/KA-Wedding-Invitation/
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Katherine & Arorangi's wedding is tomorrow!
+END:VALARM
+END:VEVENT
+END:VCALENDAR
